@@ -14,6 +14,7 @@
     "webpack-hot-middleware": "^2.25.1"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "express": "^4.18.1",
     "three": "^0.141.0",
     "webpack": "^5.73.0",

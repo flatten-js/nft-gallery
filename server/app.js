@@ -18,4 +18,6 @@ if (process.env.NODE_ENV == 'development') {
 
 app.use(express.static('./client/public'))
 
+app.use('/api', require('./routes/api.js'))
+
 app.listen(8080, () => console.log('running...'))

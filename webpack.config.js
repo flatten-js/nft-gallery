@@ -4,6 +4,11 @@ module.exports = {
   devServer: {
     static: {
       directory: __dirname + '/client/public'
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080'
+      }
     }
   },
   entry: {
