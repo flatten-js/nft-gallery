@@ -78,9 +78,36 @@
   controls.addEventListener('lock', () => $overlay.style.display = 'none')
   controls.addEventListener('unlock', () => $overlay.style.display = 'flex')
 
+  let art
   const keys = { w: false, a: false, s: false, d: false }
-  document.addEventListener('keydown', e => { keys[e.key] = true })
-  document.addEventListener('keyup', e => { keys[e.key] = false })
+
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      case 'w':
+      case 'a':
+      case 's':
+      case 'd':
+        keys[e.key] = true
+        break
+    }
+  })
+
+  document.addEventListener('keyup', e => {
+    switch (e.key) {
+      case 'w':
+      case 'a':
+      case 's':
+      case 'd':
+        keys[e.key] = false
+        break
+
+      case 'e':
+        if (!art?.creator_address) return
+        const url = `https://etherscan.io/token/${art.contract_address}?a=${art.token_id}`
+        window.open(url, '_blank')
+        break
+    }
+  })
 
   const direction = new THREE.Vector3()
   const velocity = new THREE.Vector3()
@@ -92,8 +119,6 @@
   const $caption_creator = document.getElementById('caption-header__creator')
   const $caption_description = document.getElementById('caption-body__description')
   const $caption_index = document.getElementById('caption-footer__index')
-
-  let art
 
   /*
    *
