@@ -17,6 +17,10 @@ body {
   text-align: center;
 }
 
+#overlay.hide {
+  display: none;
+}
+
 #caption {
   display: none;
   position: absolute;

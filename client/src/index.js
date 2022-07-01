@@ -6,7 +6,13 @@
   const axios = require('axios')
 
   /*
-   *
+   * Global
+   */
+
+  let looking_at
+
+  /*
+   * Init
    */
 
   const scene = new THREE.Scene()
@@ -37,7 +43,7 @@
   window.addEventListener('resize', onResize)
 
   /*
-   *
+   * Helper
    */
 
   // const { OrbitControls } = require('three/examples/jsm/controls/OrbitControls.js')
@@ -53,6 +59,12 @@
   /*
    *
    */
+
+  const controls = new PointerLockControls(camera, renderer.domElement)
+  const $overlay = document.getElementById('overlay')
+  $overlay.addEventListener('click', () => controls.lock())
+  controls.addEventListener('lock', () => $overlay.classList.add('hide'))
+  controls.addEventListener('unlock', () => $overlay.classList.remove('hide'))
 
   const { data: textures } = await axios('/api/textures')
 
@@ -71,14 +83,6 @@
     scene.add(glb.scene)
   })
 
-  const $overlay = document.getElementById('overlay')
-
-  const controls = new PointerLockControls(camera, renderer.domElement)
-  $overlay.addEventListener('click', () => controls.lock())
-  controls.addEventListener('lock', () => $overlay.style.display = 'none')
-  controls.addEventListener('unlock', () => $overlay.style.display = 'flex')
-
-  let art
   const keys = { w: false, a: false, s: false, d: false }
 
   document.addEventListener('keydown', e => {
@@ -102,64 +106,71 @@
         break
 
       case 'e':
-        if (!art?.creator_address) return
-        const url = `https://etherscan.io/token/${art.contract_address}?a=${art.token_id}`
-        window.open(url, '_blank')
+        if (looking_at?.creator_address) {
+          const url = `https://etherscan.io/token/${looking_at.contract_address}?a=${looking_at.token_id}`
+          window.open(url, '_blank')
+        }
         break
     }
   })
 
-  const direction = new THREE.Vector3()
-  const velocity = new THREE.Vector3()
-
-  const ray = new THREE.Raycaster()
-
+  const raycaster = new THREE.Raycaster()
   const $caption = document.getElementById('caption')
   const $caption_title = document.getElementById('caption-header__title')
   const $caption_creator = document.getElementById('caption-header__creator')
   const $caption_description = document.getElementById('caption-body__description')
   const $caption_index = document.getElementById('caption-footer__index')
+  function look_at() {
+    raycaster.setFromCamera(new THREE.Vector2(), camera)
+    const intersects = raycaster.intersectObjects(scene.children)
+
+    if (intersects.length > 0) {
+      const [intersect] = intersects
+      const { object } = intersect
+
+      if (/Art/.test(object.name) && intersect.distance < 5) {
+        if (!looking_at) {
+          looking_at = object.userData
+          $caption_title.innerText = looking_at.name
+          $caption_creator.innerText = looking_at.creator_address
+          $caption_description.innerText = looking_at.description
+          $caption_index.innerText = object.name.substr(-3)
+          $caption.classList.add('show')
+        }
+      } else {
+        looking_at = null
+        $caption.classList.remove('show')
+      }
+    }
+  }
+
+  const direction = new THREE.Vector3()
+  const velocity = new THREE.Vector3()
+  function movement() {
+    const { w, a, s, d } = keys
+
+    velocity.z = 0
+    velocity.x = 0
+    direction.z = Number(w) - Number(s)
+    direction.x = Number(d) - Number(a)
+
+    if (w || s) velocity.z -= direction.z * 0.03
+    if (a || d) velocity.x -= direction.x * 0.03
+
+    controls.moveRight(-velocity.x)
+    controls.moveForward(-velocity.z)
+  }
 
   /*
-   *
+   * Loop
    */
 
   function animate() {
     requestAnimationFrame(animate)
 
     if (controls.isLocked) {
-      ray.setFromCamera(new THREE.Vector2(), camera)
-      const intersects = ray.intersectObjects(scene.children)
-
-      if (intersects.length > 0) {
-        const [intersect] = intersects
-        const { object } = intersect
-
-        if (object.name.startsWith('Art') && intersect.distance < 5) {
-          art = object.userData
-          $caption_title.innerText = art.name
-          $caption_creator.innerText = art.creator_address
-          $caption_description.innerText = art.description
-          $caption_index.innerText = object.name.substr(-3)
-          $caption.classList.add('show')
-        } else {
-          art = null
-          $caption.classList.remove('show')
-        }
-      }
-
-      const { w, a, s, d } = keys
-
-      velocity.z = 0
-      velocity.x = 0
-      direction.z = Number(w) - Number(s)
-      direction.x = Number(d) - Number(a)
-
-      if (w || s) velocity.z -= direction.z * 0.03
-      if (a || d) velocity.x -= direction.x * 0.03
-
-      controls.moveRight(-velocity.x)
-      controls.moveForward(-velocity.z)
+      look_at()
+      movement()
     }
 
     renderer.render(scene, camera)
