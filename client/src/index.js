@@ -60,10 +60,11 @@
   loader.load('/assets/model/gallery.glb', glb => {
     const model = glb.scene
     model.traverse(node => {
-      let texture = textures.find(texture => texture.name == node.name)
+      let texture = textures.find(texture => texture.target == node.name)
       if (texture) {
-        new THREE.TextureLoader().load(texture.url, texture => {
-          node.material = new THREE.MeshBasicMaterial({ map: texture })
+        new THREE.TextureLoader().load(texture.url, map => {
+          node.material = new THREE.MeshBasicMaterial({ map })
+          node.userData = texture.data
         })
       }
     })
@@ -84,6 +85,16 @@
   const direction = new THREE.Vector3()
   const velocity = new THREE.Vector3()
 
+  const ray = new THREE.Raycaster()
+
+  const $caption = document.getElementById('caption')
+  const $caption_title = document.getElementById('caption-header__title')
+  const $caption_creator = document.getElementById('caption-header__creator')
+  const $caption_description = document.getElementById('caption-body__description')
+  const $caption_index = document.getElementById('caption-footer__index')
+
+  let art
+
   /*
    *
    */
@@ -92,6 +103,26 @@
     requestAnimationFrame(animate)
 
     if (controls.isLocked) {
+      ray.setFromCamera(new THREE.Vector2(), camera)
+      const intersects = ray.intersectObjects(scene.children)
+
+      if (intersects.length > 0) {
+        const [intersect] = intersects
+        const { object } = intersect
+
+        if (object.name.startsWith('Art') && intersect.distance < 5) {
+          art = object.userData
+          $caption_title.innerText = art.name
+          $caption_creator.innerText = art.creator_address
+          $caption_description.innerText = art.description
+          $caption_index.innerText = object.name.substr(-3)
+          $caption.classList.add('show')
+        } else {
+          art = null
+          $caption.classList.remove('show')
+        }
+      }
+
       const { w, a, s, d } = keys
 
       velocity.z = 0

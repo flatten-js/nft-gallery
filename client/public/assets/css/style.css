@@ -1,4 +1,5 @@
 body {
+  position: relative;
   margin: 0;
 }
 
@@ -14,4 +15,53 @@ body {
   font-size: 5rem;
   backdrop-filter: blur(3px);
   text-align: center;
+}
+
+#caption {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 416px;
+  padding: 1rem;
+  background-color: #fdfdfd;
+  font-size: 1rem;
+}
+
+#caption.show {
+  display: block;
+}
+
+.caption-header {
+  padding-bottom: .5rem;
+  margin-bottom: .5rem;
+  border-bottom: 1px solid black;
+}
+
+#caption-header__title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#caption-header__creator {
+  color: rgba(0, 0, 0, .75);
+  font-size: .75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caption-body {
+  margin-bottom: .5rem;
+}
+
+#caption-body__description {
+  margin-bottom: .25rem;
+}
+
+.caption-footer {
+  text-align: right;
 }
