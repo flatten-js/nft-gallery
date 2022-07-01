@@ -1,0 +1,30 @@
+version: '3.8'
+
+volumes:
+  mongo-data:
+
+services:
+  mongo:
+    image: mongo
+    env_file: .env
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./mongo/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    env_file: .env
+    ports:
+      - '8081:8081'
+    depends_on:
+      - mongo
+
+  app:
+    build: .
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/app
+      - /app/node_modules
