@@ -61,10 +61,10 @@
    */
 
   const controls = new PointerLockControls(camera, renderer.domElement)
-  const $overlay = document.getElementById('overlay')
-  $overlay.addEventListener('click', () => controls.lock())
-  controls.addEventListener('lock', () => $overlay.classList.add('hide'))
-  controls.addEventListener('unlock', () => $overlay.classList.remove('hide'))
+  const $title = document.getElementById('title')
+  $title.addEventListener('click', () => controls.lock())
+  controls.addEventListener('lock', () => $title.classList.add('hide'))
+  controls.addEventListener('unlock', () => $title.classList.remove('hide'))
 
   const { data: textures } = await axios('/api/textures')
 
