@@ -60,11 +60,52 @@
    *
    */
 
+  let address
+
+  if (window.ethereum) {
+    const { ethereum } = window
+    const $metamask = document.getElementById('header__metamask')
+    const $address = document.getElementById('header__address')
+
+    ethereum.on('accountsChanged', async e => {
+      await axios.get('/api/auth/signout')
+      address = null
+      $address.innerText = ''
+      $metamask.style.display = 'block'
+    })
+
+    ;[address] = await ethereum.request({ method: 'eth_accounts' })
+    if (address) {
+      $metamask.style.display = 'none'
+      $address.innerText = address
+    }
+
+    $metamask.addEventListener('click', async e => {
+      e.stopPropagation()
+
+      if (!address) [address] = await ethereum.request({ method: 'eth_requestAccounts' })
+      const { data: nonce } = await axios.get('/api/auth/nonce', { params: { address } })
+
+      if (nonce) {
+        try {
+          const message = `Nonce: ${nonce}`
+          const sign = await ethereum.request({ method: 'personal_sign', params: [address, message] })
+          await axios.get('/api/auth/verify', { params: { message, sign } })
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      $metamask.style.display = 'none'
+      $address.innerText = address
+    })
+  }
+
   const controls = new PointerLockControls(camera, renderer.domElement)
   const $title = document.getElementById('title')
   $title.addEventListener('click', () => controls.lock())
-  controls.addEventListener('lock', () => $title.classList.add('hide'))
-  controls.addEventListener('unlock', () => $title.classList.remove('hide'))
+  controls.addEventListener('lock', () => $title.style.display = 'none')
+  controls.addEventListener('unlock', () => $title.style.display = 'flex')
 
   const { data: textures } = await axios('/api/textures')
 
@@ -135,11 +176,11 @@
           $caption_creator.innerText = looking_at.creator_address
           $caption_description.innerText = looking_at.description
           $caption_index.innerText = object.name.substr(-3)
-          $caption.classList.add('show')
+          $caption.style.display = 'block'
         }
       } else {
         looking_at = null
-        $caption.classList.remove('show')
+        $caption.style.display = 'none'
       }
     }
   }

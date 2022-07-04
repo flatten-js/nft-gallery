@@ -1,4 +1,5 @@
 const express = require('express')
+const session = require('express-session')
 
 const app = express()
 
@@ -16,8 +17,11 @@ if (process.env.NODE_ENV == 'development') {
   app.use(webpackHotMiddleware(compiler))
 }
 
+app.use(session({ secret: process.env.SESSION_SECRET }))
+
 app.use(express.static('./client/public'))
 
+app.use('/api/auth', require('./routes/auth.js'))
 app.use('/api', require('./routes/api.js'))
 
 app.listen(8080, () => console.log('running...'))

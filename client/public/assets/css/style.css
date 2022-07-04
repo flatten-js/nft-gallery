@@ -21,8 +21,28 @@ body {
   z-index: 2;
 }
 
-#title.hide {
-  display: none;
+.header {
+  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 2rem;
+  color: white;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+#header__metamask {
+  padding: .25rem .5rem;
+  border: 1px solid white;
+  background-color: rgba(255, 255, 255, .5);
+  cursor: pointer;
+}
+
+#header__metamask img {
+  height: 2rem;
+  vertical-align: middle;
 }
 
 .title-body {
@@ -39,7 +59,6 @@ body {
 
 .title-footer__owner {
   text-align: right;
-  font-weight: bold;
 }
 
 #caption {
@@ -51,10 +70,6 @@ body {
   padding: 1rem;
   background-color: #fdfdfd;
   font-size: 1rem;
-}
-
-#caption.show {
-  display: block;
 }
 
 .caption-header {
