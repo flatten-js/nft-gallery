@@ -17,6 +17,7 @@ if (process.env.NODE_ENV == 'development') {
   app.use(webpackHotMiddleware(compiler))
 }
 
+app.use(express.json())
 app.use(session({ secret: process.env.SESSION_SECRET }))
 
 app.use(express.static('./client/public'))

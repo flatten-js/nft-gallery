@@ -1,6 +1,7 @@
 const express = require('express')
 
 const { mongo } = require('../src/client.js')
+const NFT = require('../src/nft.js')
 
 const router = express.Router()
 
@@ -17,6 +18,7 @@ router.get('/textures', async (req, res) => {
     res.json(textures)
   } finally {
     await mongo.close()
+    res.end()
   }
 })
 
@@ -26,30 +28,33 @@ router.use((req, res, next) => {
 })
 
 router.get('/assets', async (req, res) => {
-  const assets = [
-    {
-      "url": "https://ipfs.io/ipfs/QmUmVe5izyyquk71JE7o9y7NRhWCSd7nqBFNqf3U4YnNMk",
-      "data": {
-          "name": "Bride Girls#1",
-          "creator_address": "0xeB044ADCF51D2Ffe5AE4a4c6e62c4e38eFd06a47",
-          "contract_address": "0x2E98069b38C4d8e5c5D995f3fB78D0407Fb8b154",
-          "token_id": "1",
-          "description": "\"Bride Girls Collection\". Illustrator Nae Nae's first generative collection. Meet your own fabulous brides!"
-      }
-    },
-    {
-      "url": "https://ipfs.io/ipfs/Qmac1MRbAC83ge4t6g81jfyUbj45jQmnL2PcBcQqv95YaX",
-      "data": {
-          "name": "Bride Girls#31",
-          "creator_address": "0xeB044ADCF51D2Ffe5AE4a4c6e62c4e38eFd06a47",
-          "contract_address": "0x2E98069b38C4d8e5c5D995f3fB78D0407Fb8b154",
-          "token_id": "31",
-          "description": "\"Bride Girls Collection\". Illustrator Nae Nae's first generative collection. Meet your own fabulous brides!"
-      }
-    }
-  ]
+  const nft = new NFT(NFT.ETHEREUM, process.env.WALLET_ADDRESS)
+  const metadata = await nft.metadata()
+  res.json(metadata)
+})
 
-  res.json(assets)
+router.post('/texture/add', async (req, res) => {
+  try {
+    await mongo.connect()
+    const db = mongo.db('nft-gallery')
+    const collection = db.collection('textures')
+    await collection.updateOne({ target: req.body.target }, { $set: req.body }, { upsert: true })
+  } finally {
+    await mongo.close()
+    res.end()
+  }
+})
+
+router.get('/texture/delete', async (req, res) => {
+  try {
+    await mongo.connect()
+    const db = mongo.db('nft-gallery')
+    const collection = db.collection('textures')
+    await collection.deleteOne({ target: req.query.target })
+  } finally {
+    await mongo.close()
+    res.end()
+  }
 })
 
 module.exports = router
