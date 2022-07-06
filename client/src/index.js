@@ -9,11 +9,24 @@
    * Global
    */
 
+  const { data: owner_address } = await axios.get('/api/owner')
+
+  let edit_mode
+  let address
   let looking_at
+
+  async function auth_verify(address, nonce) {
+    const message = `Nonce: ${nonce}`
+    const sign = await ethereum.request({ method: 'personal_sign', params: [address, message] })
+    return await axios.get('/api/auth/verify', { params: { message, sign } })
+  }
 
   /*
    * Init
    */
+
+  const $owned_by = document.getElementById('title-footer__owner')
+  $owned_by.innerText += owner_address
 
   const scene = new THREE.Scene()
   scene.rotation.y = Math.PI
@@ -60,8 +73,6 @@
    *
    */
 
-  let address
-
   if (window.ethereum) {
     const { ethereum } = window
     const $metamask = document.getElementById('header__metamask')
@@ -88,9 +99,7 @@
 
       if (nonce) {
         try {
-          const message = `Nonce: ${nonce}`
-          const sign = await ethereum.request({ method: 'personal_sign', params: [address, message] })
-          await axios.get('/api/auth/verify', { params: { message, sign } })
+          await auth_verify(address, nonce)
         } catch (e) {
           console.error(e)
         }
@@ -105,7 +114,7 @@
   const $title = document.getElementById('title')
   $title.addEventListener('click', () => controls.lock())
   controls.addEventListener('lock', () => $title.style.display = 'none')
-  controls.addEventListener('unlock', () => $title.style.display = 'flex')
+  controls.addEventListener('unlock', () => { if (!edit_mode) $title.style.display = 'flex' })
 
   const { data: textures } = await axios('/api/textures')
 
@@ -137,7 +146,17 @@
     }
   })
 
-  document.addEventListener('keyup', e => {
+  const $assets = document.getElementById('assets')
+  const $overlay = document.getElementById('assets__overlay')
+  const $nfts = document.getElementById('assets-body__nfts')
+  $overlay.addEventListener('click', e => {
+    edit_mode = false
+    controls.lock()
+    $assets.style.display = 'none'
+    $nfts.innerHTML = ''
+  }, true)
+
+  document.addEventListener('keyup', async e => {
     switch (e.key) {
       case 'w':
       case 'a':
@@ -147,10 +166,46 @@
         break
 
       case 'e':
-        if (looking_at?.creator_address) {
+        if (address == owner_address.toLowerCase() && looking_at) {
+          try {
+            const { data: assets } = await axios.get('/api/assets')
+
+            edit_mode = true
+            controls.unlock()
+            $assets.style.display = 'block'
+
+            assets.forEach(asset => {
+              $nfts.insertAdjacentHTML('beforeend', `
+                <div class="nft">
+                  <img src="${asset.url}" />
+                  <div class="nft__body">
+                    <div>${asset.data.name}</div>
+                  </div>
+                </div>
+              `)
+            })
+
+            $nfts.querySelectorAll('.nft').forEach(($, i) => {
+              $.addEventListener('click', e => {
+                const asset = assets[i]
+                new THREE.TextureLoader().load(asset.url, map => {
+                  looking_at.object.material = new THREE.MeshBasicMaterial({ map })
+                  looking_at.object.userData = asset.data
+                })
+              })
+            })
+
+          } catch (e) {
+            if (e.response.status == 401) {
+              const { data: nonce } = await axios.get('/api/auth/nonce', { params: { address } })
+              await auth_verify(address, nonce)
+            }
+          }
+        } else if (looking_at?.creator_address) {
           const url = `https://etherscan.io/token/${looking_at.contract_address}?a=${looking_at.token_id}`
           window.open(url, '_blank')
         }
+
         break
     }
   })
@@ -171,7 +226,7 @@
 
       if (/Art/.test(object.name) && intersect.distance < 5) {
         if (!looking_at) {
-          looking_at = object.userData
+          looking_at = { ...object.userData, object }
           $caption_title.innerText = looking_at.name
           $caption_creator.innerText = looking_at.creator_address
           $caption_description.innerText = looking_at.description
