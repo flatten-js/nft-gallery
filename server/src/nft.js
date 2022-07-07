@@ -43,7 +43,7 @@ class NFT {
     try {
       const method = NFT.mapping.method[token]
       const uri = await contract.methods[method](id).call()
-      return uri.replace('ipfs://', 'https://ipfs.io/ipfs/')
+      return uri.replace('ipfs://', 'https://ipfs.io/ipfs/').replace('0x{id}', id)
     } catch (e) {
       console.error(e)
       return ''

@@ -63,6 +63,8 @@
       $.addEventListener('click', e => {
         const asset = assets[i]
         new THREE.TextureLoader().load(asset.image, map => {
+          map.encoding = THREE.sRGBEncoding
+
           const a = [asset.contractAddress, asset.token_id]
           const b = [looking_at.userData.contractAddress, looking_at.userData.token_id]
 
@@ -92,7 +94,7 @@
   scene.rotation.y = Math.PI
   scene.position.z = -32.5
 
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50)
   camera.position.y = 1.6
 
   const light = new THREE.AmbientLight(0xffffff)
@@ -179,6 +181,7 @@
       let texture = textures.find(texture => texture.target == node.name)
       if (texture) {
         new THREE.TextureLoader().load(texture.image, map => {
+          map.encoding = THREE.sRGBEncoding
           node.material = new THREE.MeshBasicMaterial({ map })
           node.userData = { ...node.userData, ...texture }
         })

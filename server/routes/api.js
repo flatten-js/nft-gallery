@@ -29,7 +29,7 @@ router.use((req, res, next) => {
 
 router.get('/assets', async (req, res) => {
   const nft = new NFT(NFT.ETHEREUM, process.env.WALLET_ADDRESS)
-  const metadata = await nft.metadata()
+  const metadata = (await Promise.all([nft.metadata(NFT.ERC721), nft.metadata(NFT.ERC1155)])).flat()
   res.json(metadata)
 })
 
