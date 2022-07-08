@@ -191,6 +191,7 @@
   })
 
   const controls = new PointerLockControls(camera, renderer.domElement)
+  controls.pointerSpeed = 0.5
   $title.addEventListener('click', () => controls.lock())
   controls.addEventListener('lock', () => $title.style.display = 'none')
   controls.addEventListener('unlock', () => { if (!edit_mode) $title.style.display = 'flex' })
@@ -220,12 +221,13 @@
       const { data: nonce } = await axios.get('/api/auth/nonce', { params: { address } })
       await auth_verify(address, nonce)
 
-      if (!assets) ({ data: assets } = await axios.get('/api/assets'))
       $reconnect.style.display = 'none'
+      if (!assets) ({ data: assets } = await axios.get('/api/assets'))
 
       setting_assets(assets)
     } catch (e) {
       console.error(e)
+      $reconnect.style.display = 'block'
     }
   })
 
@@ -290,9 +292,10 @@
     velocity.x = 0
     direction.z = Number(w) - Number(s)
     direction.x = Number(d) - Number(a)
+    direction.normalize()
 
-    if (w || s) velocity.z -= direction.z * 0.03
-    if (a || d) velocity.x -= direction.x * 0.03
+    if (w || s) velocity.z -= direction.z * 0.025
+    if (a || d) velocity.x -= direction.x * 0.025
 
     controls.moveRight(-velocity.x)
     controls.moveForward(-velocity.z)
