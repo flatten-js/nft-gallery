@@ -33,6 +33,9 @@
   let looking_at
   let assets
 
+  const _keys = { w: false, a: false, s: false, d: false }
+  let keys = { ..._keys }
+
   async function auth_verify(address, nonce) {
     const message = `Nonce: ${nonce}`
     const sign = await ethereum.request({ method: 'personal_sign', params: [address, message] })
@@ -194,19 +197,9 @@
   controls.pointerSpeed = 0.5
   $title.addEventListener('click', () => controls.lock())
   controls.addEventListener('lock', () => $title.style.display = 'none')
-  controls.addEventListener('unlock', () => { if (!edit_mode) $title.style.display = 'flex' })
-
-  const keys = { w: false, a: false, s: false, d: false }
-
-  document.addEventListener('keydown', e => {
-    switch (e.key) {
-      case 'w':
-      case 'a':
-      case 's':
-      case 'd':
-        keys[e.key] = true
-        break
-    }
+  controls.addEventListener('unlock', () => {
+    keys = _keys
+    if (!edit_mode) $title.style.display = 'flex'
   })
 
   $overlay.addEventListener('click', e => {
@@ -228,6 +221,17 @@
     } catch (e) {
       console.error(e)
       $reconnect.style.display = 'block'
+    }
+  })
+
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      case 'w':
+      case 'a':
+      case 's':
+      case 'd':
+        keys[e.key] = true
+        break
     }
   })
 
