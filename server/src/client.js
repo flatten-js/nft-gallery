@@ -1,15 +1,7 @@
 const { MongoClient } = require('mongodb')
 const axios = require('axios')
 
-const {
-  MONGO_HOST,
-  MONGO_PORT,
-  MONGO_USERNAME,
-  MONGO_PASSWORD
-} = process.env
-
-const mongo_url = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}`
-exports.mongo = new MongoClient(mongo_url)
+exports.mongo = new MongoClient(process.env.MONGO_URL)
 
 exports.axios = axios.create({})
 

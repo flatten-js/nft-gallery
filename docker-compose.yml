@@ -10,7 +10,6 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - ./mongo/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - mongo-data:/data/db
 
   mongo-express:
