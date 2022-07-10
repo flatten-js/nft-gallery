@@ -19,6 +19,8 @@ class NFT {
     }
   }
 
+  static IPFS_GATEWAY = 'cloudflare-ipfs.com'
+
   constructor(network, address) {
     this.web3 = new Web3(`https://${network}.infura.io/v3/${process.env.INFURA_PROJECTID}`)
     this.address = address
@@ -39,11 +41,15 @@ class NFT {
     }
   }
 
+  _format_uri(uri) {
+    return uri.replace('ipfs://', `https://${NFT.IPFS_GATEWAY}/ipfs/`)
+  }
+
   async tokenURI(contract, id, token = NFT.ERC721) {
     try {
       const method = NFT.mapping.method[token]
       const uri = await contract.methods[method](id).call()
-      return uri.replace('ipfs://', 'https://ipfs.io/ipfs/').replace('0x{id}', id)
+      return this._format_uri(uri).replace('0x{id}', id)
     } catch (e) {
       console.error(e)
       return ''
@@ -54,7 +60,7 @@ class NFT {
     try {
       const uri = await this.tokenURI(contract, id, token)
       const { data: metadata } = await axios.get(uri)
-      return { ...metadata, image: metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') }
+      return { ...metadata, image: this._format_uri(metadata.image) }
     } catch (e) {
       console.error(e)
       return {}

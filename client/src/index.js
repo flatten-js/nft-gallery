@@ -246,16 +246,18 @@
 
       case 'e':
         if (address == owner_address.toLowerCase() && looking_at) {
-          edit_mode = true
-          controls.unlock()
-          $assets.style.display = 'block'
+          if (!edit_mode) {
+            edit_mode = true
+            controls.unlock()
+            $assets.style.display = 'block'
 
-          try {
-            if (!assets) ({ data: assets } = await axios.get('/api/assets'))
-            setting_assets(assets)
-          } catch (e) {
-            console.error(e)
-            if (e.response.status == 401) $reconnect.style.display = 'block'
+            try {
+              if (!assets) ({ data: assets } = await axios.get('/api/assets'))
+              setting_assets(assets)
+            } catch (e) {
+              console.error(e)
+              if (e.response.status == 401) $reconnect.style.display = 'block'
+            }
           }
         } else if (looking_at?.userData.creator_address) {
           const url = `https://etherscan.io/token/${looking_at.userData.contract_address}?a=${looking_at.userData.token_id}`
