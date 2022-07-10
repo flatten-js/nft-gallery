@@ -32,4 +32,5 @@ app.use(express.static('./client/public'))
 app.use('/api/auth', require('./routes/auth.js'))
 app.use('/api', require('./routes/api.js'))
 
-app.listen(8080, () => console.log('running...'))
+const port = process.env.PORT || 8080
+app.listen(port, () => console.log('running...'))
