@@ -1,9 +1,9 @@
 (async () => {
-  const THREE = require('three')
-  const { GLTFLoader } = require('three/examples/jsm/loaders/GLTFLoader.js')
-  const { PointerLockControls } = require('three/examples/jsm/controls/PointerLockControls.js')
+  const THREE = await import(/* webpackChunkName: 'module' */'three')
+  const { GLTFLoader } = await import(/* webpackChunkName: 'module' */'three/examples/jsm/loaders/GLTFLoader.js')
+  const { PointerLockControls } = await import(/* webpackChunkName: 'module' */'three/examples/jsm/controls/PointerLockControls.js')
 
-  const axios = require('axios')
+  const { default: axios } = await import(/* webpackChunkName: 'module' */'axios')
 
   /*
    * Global

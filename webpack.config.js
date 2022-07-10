@@ -1,3 +1,5 @@
+const CompressionPlugin = require("compression-webpack-plugin")
+
 module.exports = {
   mode: 'development',
 
@@ -11,6 +13,7 @@ module.exports = {
       }
     }
   },
+
   entry: {
     app: [__dirname + '/client/src']
   },
@@ -19,9 +22,10 @@ module.exports = {
     filename: `[name].js`,
     publicPath: '/assets/js/'
   },
-
   resolve: {
     alias: {}
   },
-  plugins: [],
+  plugins: [
+    new CompressionPlugin()
+  ]
 }
