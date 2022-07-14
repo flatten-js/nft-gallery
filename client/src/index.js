@@ -1,5 +1,6 @@
 (async () => {
   const THREE = await import(/* webpackChunkName: 'module' */'three')
+  const { DRACOLoader } = await import(/* webpackChunkName: 'module' */'three/examples/jsm/loaders/DRACOLoader.js')
   const { GLTFLoader } = await import(/* webpackChunkName: 'module' */'three/examples/jsm/loaders/GLTFLoader.js')
   const { PointerLockControls } = await import(/* webpackChunkName: 'module' */'three/examples/jsm/controls/PointerLockControls.js')
 
@@ -175,7 +176,11 @@
 
   const { data: textures } = await axios('/api/textures')
 
+  const draco_loader = new DRACOLoader()
+  draco_loader.setDecoderPath('/assets/model/draco/')
+
   const loader = new GLTFLoader()
+  loader.setDRACOLoader(draco_loader)
   loader.load('/assets/model/gallery.glb', glb => {
     const model = glb.scene
     model.traverse(node => {
