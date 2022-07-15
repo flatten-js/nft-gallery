@@ -1,6 +1,8 @@
 const express = require('express')
 const session = require('express-session')
 
+const { mongo } = require('./src/client.js')
+
 const app = express()
 
 app.get('/assets/js/*.js', (req, res, next) => {
@@ -32,5 +34,9 @@ app.use(express.static('./client/public'))
 app.use('/api/auth', require('./routes/auth.js'))
 app.use('/api', require('./routes/api.js'))
 
-const port = process.env.PORT || 8080
-app.listen(port, () => console.log('running...'))
+app.locals.db_connect = async () => { await mongo.connect(); return await mongo.db('nft-gallery') }
+app.locals.db_connect().then(db => {
+  app.locals.db = db
+  const port = process.env.PORT || 8080
+  app.listen(port, () => console.log('running...'))
+})

@@ -11,13 +11,15 @@ router.get('/owner', (req, res) => {
 
 router.get('/textures', async (req, res) => {
   try {
-    await mongo.connect()
-    const db = mongo.db('nft-gallery')
+    const { db } = req.app.locals
     const collection = db.collection('textures')
     const textures = await collection.find().toArray()
     res.json(textures)
+  } catch (e) {
+    if (e instanceof MongoServerError) {
+      req.app.locals.db = await req.app.locals.db_connect()
+    }
   } finally {
-    await mongo.close()
     res.end()
   }
 })
@@ -28,31 +30,39 @@ router.use((req, res, next) => {
 })
 
 router.get('/assets', async (req, res) => {
-  const nft = new NFT(NFT.ETHEREUM, process.env.WALLET_ADDRESS)
-  const metadata = (await Promise.all([nft.metadata(NFT.ERC721), nft.metadata(NFT.ERC1155)])).flat()
-  res.json(metadata)
+  try {
+    const nft = new NFT(NFT.ETHEREUM, process.env.WALLET_ADDRESS)
+    const metadata = (await Promise.all([nft.metadata(NFT.ERC721), nft.metadata(NFT.ERC1155)])).flat()
+    res.json(metadata)
+  } finally {
+    res.end()
+  }
 })
 
 router.post('/texture/add', async (req, res) => {
   try {
-    await mongo.connect()
-    const db = mongo.db('nft-gallery')
+    const { db } = req.app.locals
     const collection = db.collection('textures')
     await collection.updateOne({ target: req.body.target }, { $set: req.body }, { upsert: true })
+  } catch (e) {
+    if (e instanceof MongoServerError) {
+      req.app.locals.db = await req.app.locals.db_connect()
+    }
   } finally {
-    await mongo.close()
     res.end()
   }
 })
 
 router.get('/texture/delete', async (req, res) => {
   try {
-    await mongo.connect()
-    const db = mongo.db('nft-gallery')
+    const { db } = req.app.locals
     const collection = db.collection('textures')
     await collection.deleteOne({ target: req.query.target })
+  } catch (e) {
+    if (e instanceof MongoServerError) {
+      req.app.locals.db = await req.app.locals.db_connect()
+    }
   } finally {
-    await mongo.close()
     res.end()
   }
 })
