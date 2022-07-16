@@ -142,33 +142,37 @@
   if (window.ethereum) {
     const { ethereum } = window
 
-    ethereum.on('accountsChanged', async e => {
-      await axios.get('/api/auth/signout')
-      address = null
-      $address.innerText = ''
-      $metamask.style.display = 'block'
-    })
-
     ;[address] = await ethereum.request({ method: 'eth_accounts' })
     if (address) {
       $metamask.style.display = 'none'
       $address.innerText = address
     }
 
+    ethereum.on('accountsChanged', async e => {
+      if (edit_mode) {
+        edit_mode = false
+        $assets.style.display = 'none'
+        $nfts.innerHTML = ''
+        $title.style.display = 'flex'
+      }
+      assets = null
+      $reconnect.style.display = 'block'
+
+      await axios.get('/api/auth/signout')
+
+      address = e[0]
+      if (address) {
+        $address.innerText = address
+        $metamask.style.display = 'none'
+      } else {
+        $address.innerText = ''
+        $metamask.style.display = 'block'
+      }
+    })
+
     $metamask.addEventListener('click', async e => {
       e.stopPropagation()
-
-      if (!address) [address] = await ethereum.request({ method: 'eth_requestAccounts' })
-      const { data: nonce } = await axios.get('/api/auth/nonce', { params: { address } })
-
-      if (nonce) {
-        try {
-          await auth_verify(address, nonce)
-        } catch (e) {
-          console.error(e)
-        }
-      }
-
+      ;[address] = await ethereum.request({ method: 'eth_requestAccounts' })
       $metamask.style.display = 'none'
       $address.innerText = address
     })
@@ -203,7 +207,7 @@
   $title.addEventListener('click', () => controls.lock())
   controls.addEventListener('lock', () => $title.style.display = 'none')
   controls.addEventListener('unlock', () => {
-    keys = _keys
+    keys = { ..._keys }
     if (!edit_mode) $title.style.display = 'flex'
   })
 
@@ -212,7 +216,7 @@
     controls.lock()
     $assets.style.display = 'none'
     $nfts.innerHTML = ''
-  }, true)
+  })
 
   $reconnect.addEventListener('click', async e => {
     try {
