@@ -6,13 +6,15 @@ const NFT = require('../src/nft.js')
 const router = express.Router()
 
 router.get('/owner', (req, res) => {
-  res.json(process.env.WALLET_ADDRESS)
+  res.json({
+    owner: process.env.WALLET_ADDRESS,
+    proxy: req.app.locals.address
+  })
 })
 
 router.get('/textures', async (req, res) => {
   try {
-    const { db } = req.app.locals
-    const collection = db.collection('textures')
+    const collection = req.app.locals.db.collection('textures')
     const textures = await collection.find().toArray()
     res.json(textures)
   } catch (e) {
@@ -41,8 +43,7 @@ router.get('/assets', async (req, res) => {
 
 router.post('/texture/add', async (req, res) => {
   try {
-    const { db } = req.app.locals
-    const collection = db.collection('textures')
+    const collection = req.app.locals.db.collection('textures')
     await collection.updateOne({ target: req.body.target }, { $set: req.body }, { upsert: true })
   } catch (e) {
     if (e instanceof MongoServerError) {
@@ -55,8 +56,7 @@ router.post('/texture/add', async (req, res) => {
 
 router.get('/texture/delete', async (req, res) => {
   try {
-    const { db } = req.app.locals
-    const collection = db.collection('textures')
+    const collection = req.app.locals.db.collection('textures')
     await collection.deleteOne({ target: req.query.target })
   } catch (e) {
     if (e instanceof MongoServerError) {

@@ -92,7 +92,7 @@
    * Init
    */
 
-  $owned_by.innerText += owner_address
+  $owned_by.innerText += owner_address.owner
 
   const scene = new THREE.Scene()
   scene.rotation.y = Math.PI
@@ -254,7 +254,7 @@
         break
 
       case 'e':
-        if (address == owner_address.toLowerCase() && looking_at) {
+        if (address == owner_address.proxy.toLowerCase() && looking_at) {
           if (!edit_mode) {
             edit_mode = true
             controls.unlock()

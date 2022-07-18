@@ -9,13 +9,13 @@ let nonce = uuidv4()
 
 router.get('/nonce', (req, res) => {
   const address = web3.utils.toChecksumAddress(req.query.address)
-  if (address == process.env.WALLET_ADDRESS) res.json(nonce)
+  if (address == req.app.locals.address) res.json(nonce)
   else res.end()
 })
 
 router.get('/verify', async (req, res) => {
   const address = web3.eth.accounts.recover(`Nonce: ${nonce}`, req.query.sign)
-  if (address == process.env.WALLET_ADDRESS) {
+  if (address == req.app.locals.address) {
     req.session.owned = true
     nonce = uuidv4()
     res.json(true)

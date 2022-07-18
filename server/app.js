@@ -37,6 +37,8 @@ app.use('/api', require('./routes/api.js'))
 app.locals.db_connect = async () => { await mongo.connect(); return await mongo.db('nft-gallery') }
 app.locals.db_connect().then(db => {
   app.locals.db = db
+  app.locals.address = process.env.WALLET_PROXY_ADDRESS || process.env.WALLET_ADDRESS
+  
   const port = process.env.PORT || 8080
   app.listen(port, () => console.log('running...'))
 })
