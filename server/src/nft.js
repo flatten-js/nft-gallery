@@ -23,7 +23,24 @@ class NFT {
 
   constructor(network, address) {
     this.web3 = new Web3(`https://${network}.infura.io/v3/${process.env.INFURA_PROJECTID}`)
-    this.address = address
+    this.address = address.toLowerCase()
+  }
+
+  _owned_nft(txs, _data = {}) {
+    if (!txs.length) return _data
+
+    const [tx] = txs
+    const { contractAddress, tokenID } = tx
+
+    const { in: _in, out, _tx, _txs } = txs.reduce((acc, cur) => {
+      if (cur.contractAddress != contractAddress || cur.tokenID != tokenID) return { ...acc, _txs: [...acc._txs, cur] }
+      if (cur.to != this.address) return { ...acc, out: acc.out + 1 }
+      return { ...acc, in: acc.in + 1, _tx: cur }
+    }, { in: 0, out: 0, _tx: {}, _txs: [] })
+
+    if (out < _in) _data = { ..._data, [contractAddress]: [...(_data[contractAddress] || []), _tx] }
+
+    return this._owned_nft(_txs, _data)
   }
 
   async _nft(token = NFT.ERC721) {
@@ -31,10 +48,7 @@ class NFT {
       const mapping = { [NFT.ERC721]: 'nft', [NFT.ERC1155]: '1155' }
       const action = `token${mapping[token]}tx`
       const { data } = await etherscan.get({ module: 'account', action, address: this.address })
-      return data.result.reduce((acc, cur) => {
-        const address = cur.contractAddress
-        return { ...acc, [address]: [...(acc[address] || []), { from: cur.from, id: cur.tokenID }] }
-      }, {})
+      return this._owned_nft(data.result)
     } catch (e) {
       console.error(e)
       return []
@@ -72,10 +86,10 @@ class NFT {
     return await Object.keys(_nft).reduce(async (acc, cur) => {
       const contract = new this.web3.eth.Contract(NFT.mapping.abi[token], cur)
       const metadata = await Promise.all(_nft[cur].map(async data => ({
-        ...(await this._metadata(contract, data.id, token)),
+        ...(await this._metadata(contract, data.tokenID, token)),
         creator_address: data.from,
         contract_address: cur,
-        token_id: data.id
+        token_id: data.tokenID
       })))
       return [...(await acc), ...metadata]
     }, [])
