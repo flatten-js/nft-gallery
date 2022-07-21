@@ -51,6 +51,27 @@
     $caption.style.display = 'block'
   }
 
+  function convert_art_aspect(node, map, scale) {
+    const image_aspect = map.image.height / map.image.width
+
+    const box3 = new THREE.Box3()
+    box3.setFromObject(node)
+    const w = box3.max.y - box3.min.y
+    const h = box3.max.z - box3.min.z
+    const art_aspect = h / w
+
+    const { array: _array } = node.geometry.getAttribute('position')
+    const array = _array.map((x, i) => {
+      if ((i+1) % 3 == 2) {
+        scale = scale || art_aspect * image_aspect
+        x = Math.sign(x) == -1 ? -scale : scale
+      }
+      return x
+    })
+
+    node.geometry.setAttribute('position', new THREE.BufferAttribute(array, 3))
+  }
+
   function setting_assets(assets) {
     assets.forEach(asset => {
       $nfts.insertAdjacentHTML('beforeend', `
@@ -73,10 +94,12 @@
           const b = [looking_at.userData.contractAddress, looking_at.userData.token_id]
 
           if (JSON.stringify(a) == JSON.stringify(b)) {
+            convert_art_aspect(looking_at, map, 1)
             looking_at.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(0, 0, 0) })
             looking_at.userData = { _name: looking_at.userData._name }
             axios.get('/api/texture/delete', { params: { target: looking_at.name } })
           } else {
+            convert_art_aspect(looking_at, map)
             looking_at.material = new THREE.MeshBasicMaterial({ map })
             looking_at.userData = { ...asset, _name: looking_at.userData._name }
             axios.post('/api/texture/add', { ...looking_at.userData, target: looking_at.name })
@@ -95,8 +118,6 @@
   $owned_by.innerText += owner_address.owner
 
   const scene = new THREE.Scene()
-  scene.rotation.y = Math.PI
-  scene.position.z = -32.5
 
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50)
   camera.position.y = 1.6
@@ -192,7 +213,8 @@
 
       let texture = textures.find(texture => texture.target == node.name)
       if (texture) {
-        new THREE.TextureLoader().load(texture.image, map => {
+        new THREE.TextureLoader().load(texture.image, async map => {
+          convert_art_aspect(node, map)
           map.encoding = THREE.sRGBEncoding
           node.material = new THREE.MeshBasicMaterial({ map })
           node.userData = { ...node.userData, ...texture }
@@ -200,6 +222,8 @@
       }
     })
     scene.add(glb.scene)
+    glb.scene.rotation.y = Math.PI
+    glb.scene.position.z = -32.5
   })
 
   const controls = new PointerLockControls(camera, renderer.domElement)
