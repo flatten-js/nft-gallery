@@ -43,10 +43,14 @@
     return await axios.get('/api/auth/verify', { params: { message, sign } })
   }
 
+  function format_description(description, max = 175) {
+    description = (description || 'No description').replace(/\r?\n/g, ' ')
+    return description.length >= max ? description.slice(0, max)+'...' : description
+  }
+
   function setting_caption(looking_at) {
     $caption_title.innerText = looking_at.userData.name || looking_at.userData._name
-    $caption_creator.innerText = looking_at.userData.creator_address
-    $caption_description.innerText = String(looking_at.userData.description).replace(/\r?\n/g, ' ')
+    $caption_description.innerText = format_description(looking_at.userData.description)
     $caption_index.innerText = looking_at.name.substr(-3)
     $caption.style.display = 'block'
   }

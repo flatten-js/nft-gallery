@@ -54,6 +54,14 @@ body {
 
 .title-body__title {
   font-size: 4rem;
+  margin: 0;
+}
+
+.title-body__subtitle {
+  font-style: italic;
+  font-size: 1.25rem;
+  font-weight: normal;
+  margin: .5rem 0;
 }
 
 #title-footer__owner {
@@ -74,7 +82,7 @@ body {
 
 .caption-header {
   padding-bottom: .5rem;
-  margin-bottom: .5rem;
+  margin-bottom: 1rem;
   border-bottom: 1px solid black;
 }
 
@@ -95,11 +103,12 @@ body {
 }
 
 .caption-body {
-  margin-bottom: .5rem;
+  margin-bottom: 1rem;
+  word-break: break-all;
 }
 
 #caption-body__description {
-  margin-bottom: .25rem;
+  margin-bottom: .5rem;
 }
 
 .caption-footer {
@@ -136,6 +145,10 @@ body {
   padding: 1rem;
   background-color: white;
   box-sizing: border-box;
+}
+
+.assets-body__title {
+  font-size: 1.5rem;
 }
 
 .assets-body-inner {
