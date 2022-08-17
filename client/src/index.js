@@ -43,7 +43,7 @@
     return await axios.get('/api/auth/verify', { params: { message, sign } })
   }
 
-  function format_description(description, max = 175) {
+  function format_description(description, max = 75) {
     description = (description || 'No description').replace(/\r?\n/g, ' ')
     return description.length >= max ? description.slice(0, max)+'...' : description
   }
@@ -82,7 +82,7 @@
         <div class="nft">
           <img src="${asset.image}" />
           <div class="nft__body">
-            <div>${asset.name}</div>
+            ${asset.name}
           </div>
         </div>
       `)

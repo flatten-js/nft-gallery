@@ -71,8 +71,8 @@ body {
 #caption {
   display: none;
   position: absolute;
-  bottom: 0;
-  right: 0;
+  bottom: 2rem;
+  right: 2rem;
   width: 416px;
   padding: 1rem;
   background-color: #fdfdfd;
@@ -196,6 +196,9 @@ body {
   width: 100%;
   padding: .25rem .5rem;
   color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   background-color: rgba(0, 0, 0, .5);
   box-sizing: border-box;
 }
