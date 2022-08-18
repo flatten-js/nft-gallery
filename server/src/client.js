@@ -16,3 +16,15 @@ exports.etherscan = {
     return this._.get('', { params })
   }
 }
+
+exports.polygonscan = {
+  _: axios.create({
+    baseURL: 'https://api.polygonscan.com/api',
+    params: {
+      apiKey: process.env.POLYGONSCAN_APIKEY
+    }
+  }),
+  get(params) {
+    return this._.get('', { params })
+  }
+}

@@ -151,6 +151,12 @@ body {
   font-size: 1.5rem;
 }
 
+#assets-body__network {
+  padding: .5rem;
+  margin-bottom: 1rem;
+  border: 1px solid black;
+}
+
 .assets-body-inner {
   flex-grow: 2;
   margin-bottom: 1rem;

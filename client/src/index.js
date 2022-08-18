@@ -20,19 +20,20 @@
 
   const $caption = document.getElementById('caption')
   const $caption_title = document.getElementById('caption-header__title')
-  const $caption_creator = document.getElementById('caption-header__creator')
   const $caption_description = document.getElementById('caption-body__description')
   const $caption_index = document.getElementById('caption-footer__index')
 
   const $assets = document.getElementById('assets')
   const $overlay = document.getElementById('assets__overlay')
+  const $network = document.getElementById('assets-body__network')
   const $nfts = document.getElementById('assets-body-inner__nfts')
   const $reconnect = document.getElementById('assets-body__reconnect')
 
   let edit_mode
   let address
   let looking_at
-  let assets
+  let network = $network.value
+  let assets = {}
 
   const _keys = { w: false, a: false, s: false, d: false }
   let keys = { ..._keys }
@@ -113,6 +114,15 @@
         })
       })
     })
+  }
+
+  async function update_assets() {
+    $nfts.innerHTML = null
+    if (!assets[network]) {
+      const { data: _assets } = await axios.get('/api/assets', { params: { network } })
+      assets[network] = _assets
+    }
+    setting_assets(assets[network])
   }
 
   /*
@@ -246,15 +256,18 @@
     $nfts.innerHTML = ''
   })
 
+  $network.addEventListener('change', async e => {
+    network = e.target.value
+    await update_assets()
+  })
+
   $reconnect.addEventListener('click', async e => {
     try {
       const { data: nonce } = await axios.get('/api/auth/nonce', { params: { address } })
       await auth_verify(address, nonce)
 
       $reconnect.style.display = 'none'
-      if (!assets) ({ data: assets } = await axios.get('/api/assets'))
-
-      setting_assets(assets)
+      await update_assets()
     } catch (e) {
       console.error(e)
       $reconnect.style.display = 'block'
@@ -289,8 +302,7 @@
             $assets.style.display = 'block'
 
             try {
-              if (!assets) ({ data: assets } = await axios.get('/api/assets'))
-              setting_assets(assets)
+              await update_assets()
             } catch (e) {
               console.error(e)
               if (e.response.status == 401) $reconnect.style.display = 'block'

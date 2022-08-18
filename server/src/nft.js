@@ -1,9 +1,10 @@
 const Web3 = require('web3')
 
-const { axios, etherscan } = require('./client.js')
+const { axios, etherscan, polygonscan } = require('./client.js')
 
 class NFT {
   static ETHEREUM = 'mainnet'
+  static POLYGON = 'polygon-mainnet'
 
   static ERC721 = 'ERC721'
   static ERC1155 = 'ERC1155'
@@ -22,8 +23,28 @@ class NFT {
   static IPFS_GATEWAY = 'cloudflare-ipfs.com'
 
   constructor(network, address) {
-    this.web3 = new Web3(`https://${network}.infura.io/v3/${process.env.INFURA_PROJECTID}`)
+    this.network = network
     this.address = address.toLowerCase()
+
+    const { url, client } = this._network(network)
+    this.web3 = new Web3(url)
+    this.client = client
+  }
+
+  _network(network) {
+    switch (network) {
+      case NFT.POLYGON:
+        return {
+          url: 'https://polygon-rpc.com/',
+          client: polygonscan
+        }
+
+      default:
+        return {
+          url: `https://${network}.infura.io/v3/${process.env.INFURA_PROJECTID}`,
+          client: etherscan
+        }
+    }
   }
 
   _owned_nft(txs, _data = {}) {
@@ -38,7 +59,9 @@ class NFT {
       return { ...acc, in: acc.in + 1, _tx: cur }
     }, { in: 0, out: 0, _tx: {}, _txs: [] })
 
-    if (out < _in) _data = { ..._data, [contractAddress]: [...(_data[contractAddress] || []), _tx] }
+    if (out < _in) {
+      _data = { ..._data, [contractAddress]: [...(_data[contractAddress] || []), _tx] }
+    }
 
     return this._owned_nft(_txs, _data)
   }
@@ -47,7 +70,7 @@ class NFT {
     try {
       const mapping = { [NFT.ERC721]: 'nft', [NFT.ERC1155]: '1155' }
       const action = `token${mapping[token]}tx`
-      const { data } = await etherscan.get({ module: 'account', action, address: this.address })
+      const { data } = await this.client.get({ module: 'account', action, address: this.address })
       return this._owned_nft(data.result)
     } catch (e) {
       console.error(e)
